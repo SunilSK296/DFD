@@ -1,8 +1,8 @@
 flask
+gunicorn
 easyocr==1.7.1
 opencv-python-headless
 pillow
 numpy
 matplotlib
 pdf2image
-gunicorn
