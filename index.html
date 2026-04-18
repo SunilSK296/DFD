@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DocGuard AI</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>🛡️ DocGuard AI</h1>
+    <p>Upload a document to detect forgery</p>
+
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" required>
+        <button type="submit">Analyze Document</button>
+    </form>
+
+    {% if result %}
+    <div class="result">
+        <h2>Result</h2>
+        <p><strong>Document Type:</strong> {{ result.doc_type }}</p>
+        <p><strong>Status:</strong> {{ result.status }}</p>
+        <p><strong>Score:</strong> {{ result.score }}</p>
+
+        <h3>Reasons:</h3>
+        <ul>
+            {% for r in result.reasons %}
+            <li>{{ r }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+</div>
+
+</body>
+</html>
