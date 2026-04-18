@@ -45,9 +45,23 @@ if uploaded_file:
         reasons = []
 
         # Image anomalies
-        if len(regions) > 5:
+        # --- ELA SCORING FIX ---
+        num_regions = len(regions)
+
+        if num_regions > 8:
             score += 25
-            reasons.append("Multiple ELA anomalies detected")
+            reasons.append(f"High number of suspicious regions detected ({num_regions})")
+
+        elif num_regions > 3:
+            score += 15
+            reasons.append(f"Moderate image inconsistencies detected ({num_regions})")
+
+        elif num_regions > 0:
+            score += 5
+            reasons.append("Minor compression variations detected")
+
+        else:
+            reasons.append("No strong image tampering detected (ELA clean)")
 
         # Document rules
         if doc_type == "aadhaar":
