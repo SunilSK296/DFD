@@ -1,42 +1,37 @@
-from flask import Flask, render_template, request
+from flask import Flask, request, render_template
 import os
-
-# import your modules
-from modules.document_detector import detect_document_type
-from modules.ocr_module import extract_text
-from modules.forgery_checks import perform_ela, detect_regions
-from modules.aadhaar_rules import check_aadhaar
-from modules.pan_rules import check_pan
-from modules.sslc_rules import check_sslc
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = "uploads"
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# HEALTH CHECK (Render needs this to respond quickly)
+@app.route("/")
+def health():
+    return "OK"
 
-@app.route('/')
-def home():
-    return render_template("index.html", result=None)
-
-@app.route('/upload', methods=['POST'])
+@app.route("/upload", methods=["POST"])
 def upload():
-    file = request.files['file']
-    path = os.path.join(UPLOAD_FOLDER, file.filename)
+    file = request.files["file"]
+    os.makedirs("uploads", exist_ok=True)
+    path = os.path.join("uploads", file.filename)
     file.save(path)
 
-    # OCR first pass
+    # IMPORT HEAVY MODULES HERE (lazy load)
+    from modules.document_detector import detect_document_type
+    from modules.ocr_module import extract_text
+    from modules.forgery_checks import perform_ela, detect_regions
+    from modules.aadhaar_rules import check_aadhaar
+    from modules.pan_rules import check_pan
+    from modules.sslc_rules import check_sslc
+
     texts, _ = extract_text(path, "unknown")
     doc_type = detect_document_type(" ".join(texts))
 
-    # OCR again
     texts, _ = extract_text(path, doc_type)
 
-    # ELA
     ela = perform_ela(path)
     regions = detect_regions(ela)
 
-    score = 0
-    reasons = []
+    score, reasons = 0, []
 
     if len(regions) > 5:
         score += 25
@@ -54,24 +49,15 @@ def upload():
     score += s
     reasons += r
 
+    status = "LIKELY GENUINE"
     if score > 70:
         status = "SUSPICIOUS"
     elif score > 40:
         status = "NEEDS REVIEW"
-    else:
-        status = "LIKELY GENUINE"
 
-    result = {
+    return {
         "doc_type": doc_type,
         "status": status,
         "score": score,
         "reasons": reasons
     }
-
-    return render_template("index.html", result=result)
-
-import os
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
