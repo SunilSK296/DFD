@@ -2,12 +2,12 @@ from flask import Flask, render_template, request
 import os
 
 # import your modules
-from document_detector import detect_document_type
-from ocr_module import extract_text
-from forgery_checks import perform_ela, detect_regions
-from aadhaar_rules import check_aadhaar
-from pan_rules import check_pan
-from sslc_rules import check_sslc
+from modules.document_detector import detect_document_type
+from modules.ocr_module import extract_text
+from modules.forgery_checks import perform_ela, detect_regions
+from modules.aadhaar_rules import check_aadhaar
+from modules.pan_rules import check_pan
+from modules.sslc_rules import check_sslc
 
 app = Flask(__name__)
 
